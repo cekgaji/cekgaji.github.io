@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cek Gaji — Harusnya Gaji Kamu Berapa?</title>
+<meta name="description" content="Isi jobdesc asli + lembur kamu. Kita hitung gaji yang seharusnya — dan berapa yang ditahan kantor.">
+<meta property="og:title" content="Cek Gaji 💸 Harusnya gaji kamu berapa?">
+<meta property="og:description" content="Kontrak vs kenyataan. Hitung lembur + kerjaan di luar jobdesc kamu.">
+<meta property="og:image" content="https://cekgaji.github.io/og.png">
+<meta property="og:url" content="https://cekgaji.github.io">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0E3B2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#14110F;--paper:#F4EFE6;--green:#0E3B2E;--money:#0E7A4B;--red:#D7263D;--muted:#6B645B;--yellow:#FFD23F}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--green);color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif}
+  main{max-width:460px;margin:0 auto;padding:24px 18px 48px}
+  .slip{background:var(--paper);border-radius:6px 6px 0 0;padding:24px 20px 44px;
+    -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/22px 100%;
+            mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/22px 100%}
+  .kicker{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between}
+  h1{font-size:32px;line-height:1.05;margin:8px 0 10px;letter-spacing:-.02em}
+  h1 em{font-style:normal;color:var(--money)}
+  h2{font-size:22px;margin:6px 0 4px;letter-spacing:-.01em}
+  p.lead{margin:0 0 16px;font-size:15px;line-height:1.45;color:#3b3631}
+  .bar{height:6px;background:#E2D9CA;border-radius:9px;margin:10px 0 18px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--money);transition:width .3s}
+  .field{margin-bottom:14px}
+  label,.lbl{display:block;font-family:"Space Mono",monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.35}
+  input[type=text],textarea{width:100%;font:700 19px "Space Grotesk",sans-serif;padding:12px 13px;border:2px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);outline:none}
+  select{width:100%;font:700 17px "Space Grotesk",sans-serif;padding:12px 13px;border:2px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);appearance:none;background-image:linear-gradient(45deg,transparent 50%,#14110F 50%),linear-gradient(135deg,#14110F 50%,transparent 50%);background-position:calc(100% - 20px) 52%,calc(100% - 14px) 52%;background-size:6px 6px;background-repeat:no-repeat}
+  textarea{font-weight:500;font-size:16px;resize:none;height:70px}
+  input:focus,textarea:focus{box-shadow:3px 3px 0 var(--ink)}
+  .rp{position:relative}.rp span{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-weight:700;font-size:19px}
+  .rp input{padding-left:44px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font:500 14px "Space Grotesk",sans-serif;padding:9px 12px;border:2px solid var(--ink);border-radius:999px;background:#fff;cursor:pointer;user-select:none;line-height:1.2}
+  .chip.on{background:var(--ink);color:var(--paper)}
+  .chip.univ{border-style:dashed}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+  .seg button{margin:0;border:0;border-radius:0;box-shadow:none;font-size:15px;padding:11px 4px;background:#fff}
+  .seg button+button{border-left:2px solid var(--ink)}
+  .seg button.on{background:var(--ink);color:var(--paper)}
+  .seg.two{grid-template-columns:1fr 1fr}.seg.four{grid-template-columns:repeat(4,1fr)}.seg.four button{font-size:13.5px;padding:10px 2px}
+  input[type=range]{width:100%;accent-color:var(--money)}
+  .hours{font-size:28px;font-weight:700}.hours small{font-size:14px;color:var(--muted);font-weight:500}
+  .warn{color:var(--red);font-size:13px;font-weight:700;margin-top:4px}
+  .err{color:var(--red);font-size:13.5px;font-weight:700;min-height:18px;margin-top:6px}
+  button,.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font:700 17px "Space Grotesk",sans-serif;
+    padding:14px 14px;border:2px solid var(--ink);border-radius:10px;cursor:pointer;text-decoration:none;color:var(--ink);background:#fff;text-align:center;
+    box-shadow:4px 4px 0 var(--ink);transition:transform .08s,box-shadow .08s;margin-top:12px}
+  button:active,.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+  .primary{background:var(--yellow)}
+  .danger{background:var(--red);color:#fff}
+  .ghost{background:transparent;color:var(--paper);border-color:var(--paper);box-shadow:4px 4px 0 rgba(244,239,230,.35)}
+  .nav{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+  .nav .back{background:transparent;box-shadow:none;border-color:#B9B0A3;color:var(--muted)}
+  .hidden{display:none!important}
+  #loading{color:var(--paper);text-align:center;padding:70px 10px;font-family:"Space Mono",monospace;font-size:15px}
+  .dots::after{content:"";animation:d 1s steps(4) infinite}
+  @keyframes d{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+  #result img.pulse{animation:pulse 1s ease-in-out 3;outline:4px solid var(--yellow);outline-offset:4px}
+  @keyframes pulse{50%{transform:scale(1.02)}}
+  #result img{width:100%;display:block;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .hint{color:rgba(244,239,230,.75);font-size:13px;text-align:center;margin:10px 0 0}
+  .panel{background:var(--paper);border-radius:10px;padding:14px 16px;margin-top:14px;font-size:14.5px;line-height:1.45}
+  .panel h3{margin:0 0 8px;font-size:15px;font-family:"Space Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .panel table{width:100%;border-collapse:collapse}
+  .panel td{padding:5px 0;vertical-align:top;border-bottom:1px dashed #CFC6B8}
+  .panel td:last-child{text-align:right;font-family:"Space Mono",monospace;font-weight:700;white-space:nowrap;padding-left:10px}
+  .panel tr.tot td{border-bottom:0;font-weight:700;padding-top:9px}
+  .panel .big{color:var(--red);font-size:22px;font-weight:700;display:block}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row2 .btn,.row2 button{font-size:14.5px;padding:12px 8px}
+  .modebox{margin-top:14px}.modebox .lbl{color:rgba(244,239,230,.7)}
+  .modebox .seg{border-color:var(--paper)}.modebox .seg button{background:transparent;color:var(--paper)}
+  .modebox .seg button+button{border-left-color:var(--paper)}.modebox .seg button.on{background:var(--paper);color:var(--ink)}
+  footer{color:rgba(244,239,230,.6);font-size:12px;line-height:1.5;text-align:center;margin-top:26px}
+  .sheet{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:8}
+  .sheetbox{background:var(--paper);width:100%;max-width:460px;border-radius:18px 18px 0 0;padding:16px 18px 26px;max-height:92vh;overflow:auto;animation:up .2s ease-out}
+  @keyframes up{from{transform:translateY(40px);opacity:0}}
+  .sheethead{display:flex;justify-content:space-between;align-items:center;font-size:19px}
+  .sheethead .x{width:auto;margin:0;padding:6px 12px;box-shadow:none;font-size:15px}
+  .st{font-weight:700;margin:14px 0 8px;display:flex;gap:8px;align-items:center;font-size:15px}.st small{font-weight:500;color:var(--muted);flex-basis:100%;padding-left:30px;margin-top:-4px}.st{flex-wrap:wrap}
+  .st span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:12px}
+  .saverow{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+  .saverow img{width:96px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .saverow button{font-size:14px;padding:9px;margin-top:8px}
+  .plat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .plat a{display:block;text-align:center;padding:12px 4px;border:2px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);text-decoration:none;font-weight:700;font-size:14px;line-height:1.5;box-shadow:3px 3px 0 var(--ink)}
+  .plat a:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<main>
+  <form id="f" autocomplete="off" novalidate>
+  <!-- STEP 1 -->
+  <section class="slip step" data-step="1">
+    <div class="kicker"><span>Slip gaji · versi jujur</span><span>1/3</span></div>
+    <h1>Harusnya gaji kamu <em>berapa</em>? 💸</h1>
+    <p class="lead">Isi data kerja kamu yang asli. Kita hitung lembur pakai rumus resmi, plus semua kerjaan di luar jobdesc yang selama ini gratisan.</p>
+    <div class="bar"><i style="width:33%"></i></div>
+    <div class="field"><label for="nama">Nama</label><input type="text" id="nama" maxlength="30" placeholder="contoh: Dinda"></div>
+    <div class="field"><label for="jabatan">Jabatan di kontrak</label><input type="text" id="jabatan" maxlength="50" placeholder="contoh: Staff Admin"></div>
+    <div class="field"><label for="bidang">Bidang kerja</label>
+      <select id="bidang"></select><div class="sub">Otomatis dari jabatan, ganti kalau kurang pas.</div></div>
+    <div class="field"><label for="gaji">Gaji per bulan sekarang</label>
+      <div class="rp"><span>Rp</span><input type="text" id="gaji" inputmode="numeric" placeholder="6.500.000"></div>
+      <div class="sub">🔒 Cuma dihitung di HP kamu. Gak disimpan, gak dikirim. Di kartu bisa disensor.</div></div>
+    <div class="err" id="e1"></div>
+    <button class="primary" type="button" data-next="2">Lanjut →</button>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="slip step hidden" data-step="2">
+    <div class="kicker"><span>Kontrak vs kenyataan</span><span>2/3</span></div>
+    <h2>Di kontrak vs yang beneran kamu kerjain</h2>
+    <div class="bar"><i style="width:66%"></i></div>
+    <div class="field"><label for="jobdesc">Jobdesc resmi (singkat)</label>
+      <textarea id="jobdesc" maxlength="70" placeholder="contoh: input data & rekap penjualan"></textarea></div>
+    <div class="field"><span class="lbl">Yang ternyata kamu kerjain juga 👀 (pilih semua yang relate)</span>
+      <div class="chips" id="chips"></div>
+      <input type="text" id="lain" maxlength="32" placeholder="Lainnya? (opsional)" style="margin-top:10px;font-size:16px;font-weight:500">
+    </div>
+    <div class="err" id="e2"></div>
+    <div class="nav"><button class="back" type="button" data-next="1">←</button><button class="primary" type="button" data-next="3">Lanjut →</button></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="slip step hidden" data-step="3">
+    <div class="kicker"><span>Jam yang gak kelihatan</span><span>3/3</span></div>
+    <h2>Lewat jam pulang, seminggu berapa jam?</h2>
+    <div class="bar"><i style="width:100%"></i></div>
+    <div class="field">
+      <div class="hours"><span id="jamv">5</span> <small>jam / minggu</small></div>
+      <input type="range" id="jam" min="0" max="30" value="5">
+      <div class="sub">Termasuk bales chat kerja di rumah & masuk pas libur.</div>
+      <div class="warn hidden" id="jamwarn">🚨 Lewat batas legal lembur: maks 18 jam/minggu (PP 35/2021)</div>
+    </div>
+    <div class="field"><span class="lbl">Lemburnya dibayar?</span>
+      <div class="seg" id="bayar"><button type="button" data-v="0" class="on">Gak pernah</button><button type="button" data-v="0.5">Kadang</button><button type="button" data-v="1">Dibayar</button></div>
+    </div>
+    <div class="err" id="e3"></div>
+    <div class="nav"><button class="back" type="button" data-next="2">←</button><button class="primary" type="submit">Hitung 💸</button></div>
+  </section>
+  </form>
+
+  <section id="loading" class="hidden"><span id="loadtxt">Menghitung lembur yang gak dibayar</span><span class="dots"></span></section>
+
+  <section id="result" class="hidden">
+    <img id="card" alt="Kartu hasil Cek Gaji">
+    <div class="modebox"><span class="lbl">Angka di kartu</span>
+      <div class="seg two" id="mode"><button type="button" data-v="secret" class="on">🔒 Sensor gaji</button><button type="button" data-v="open">Tampilkan nominal</button></div></div>
+    <div class="modebox"><span class="lbl">Selisih setahun dijadiin</span><div class="seg four" id="cat"></div></div>
+    <p class="hint">💡 Simpan kartu: tekan &amp; tahan gambar ±2 detik → "Simpan ke Foto" / "Download gambar".</p>
+    <a class="btn danger" id="hrd" target="_blank" rel="noopener">Kirim ke HRD-mu 😈</a>
+    <button id="keep" type="button">Simpan kartu ke galeri 📥</button>
+    <button class="primary" id="save" type="button">Share ke sosmedmu 🚀</button>
+    <div class="panel" id="detail"></div>
+    <div class="panel" id="beli"></div>
+    <button class="ghost" id="again" type="button">Hitung ulang ↺</button>
+  </section>
+
+  <footer>Hiburan, tapi setengah serius. Lembur dihitung pakai rumus PP 35/2021 (upah sejam = 1/173 gaji; jam pertama 1,5×, berikutnya 2×), diasumsikan tersebar di 5 hari kerja. Nilai "rangkap peran" &amp; harga barang = perkiraan kocak, bukan saran keuangan/hukum.<br>
+  Semua dihitung di HP kamu. Tidak ada data yang disimpan atau dikirim.</footer>
+</main>
+<div class="sheet hidden" id="sheet"><div class="sheetbox">
+  <div class="sheethead"><b>Share ke sosmedmu 🚀</b><button type="button" class="x" id="close">✕</button></div>
+  <div class="st"><span>1</span>Simpan kartu ke galeri</div>
+  <div class="saverow"><img id="sheetimg" alt="Kartu"><div class="sub" style="margin:0"><b>Tekan lama gambar ini</b> → pilih <b>"Simpan ke Foto"</b> (iPhone) atau <b>"Download gambar"</b> (Android).<button type="button" id="dl" class="hidden">⬇️ Download kartu</button></div></div>
+  <div class="st"><span>2</span>Pilih mau share ke mana <small>(caption + link otomatis tersalin)</small></div>
+  <div class="plat">
+    <a data-p="ig" target="_blank" rel="noopener" href="https://www.instagram.com/">📸<br>IG Story</a>
+    <a data-p="tt" target="_blank" rel="noopener" href="https://www.tiktok.com/">🎵<br>TikTok</a>
+    <a data-p="th" target="_blank" rel="noopener">🧵<br>Threads</a>
+    <a data-p="x"  target="_blank" rel="noopener">✖️<br>X</a>
+    <a data-p="fb" target="_blank" rel="noopener">👍<br>Facebook</a>
+    <a data-p="wa" target="_blank" rel="noopener">💬<br>WhatsApp</a>
+  </div>
+  <div class="panel" id="sheethint" style="margin-top:12px;display:none"></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<canvas id="cv" width="1080" height="1920" class="hidden"></canvas>
+
+<script>
+(() => {
+const SHARE_URL = "https://cekgaji.github.io";
+
+// ---------- data ----------
+// [label chip, sebutan peran, bobot (fraksi gaji)]
+const BIDANG = {
+ fnb:{l:"F&B / Retail / Toko",re:/barista|kasir|cashier|waiter|waitress|pelayan|crew|cook|koki|chef|toko|store|spg|retail|outlet|cafe|kafe|resto/i,t:[
+  ["Merangkap jadi kasir","Kasir",.12],["Bersih-bersih & cuci piring","Cleaning Service",.10],["Stock opname / cek stok","Staf Gudang",.12],
+  ["Pegang IG/TikTok toko","Content Creator",.20],["Bales review & komplain online","Customer Service",.12],["Foto menu / produk","Fotografer Produk",.15],
+  ["Buka & tutup toko sendirian","Store Manager",.18]]},
+ pendidikan:{l:"Guru / Pendidikan",re:/guru|dosen|pengajar|tutor|teacher|mentor|pendidik|wali kelas/i,t:[
+  ["Urus administrasi & akreditasi","Staf Administrasi",.18],["Bales chat ortu murid malam-malam","CS 24 Jam",.12],["Panitia acara sekolah","Event Organizer",.15],
+  ["Bikin konten medsos sekolah","Social Media Admin",.15],["Jadi tempat curhat murid","Konselor Dadakan",.15],["Jaga ujian & piket","Pengawas",.10]]},
+ tech:{l:"IT / Tech / Data",re:/\bit\b|programmer|developer|engineer|software|data|\bqa\b|devops|sistem|system|backend|frontend|fullstack/i,t:[
+  ["Benerin printer & wifi satu kantor","IT Helpdesk",.12],["Ngetes sendiri (QA)","QA Tester",.18],["Bikin desain UI dadakan","UI Designer",.20],
+  ["Nulis dokumentasi","Technical Writer",.12],["Bikin dashboard buat atasan","Data Analyst",.20],["On-call jam 2 pagi","SRE On-call",.20],
+  ["Ngajarin orang pakai sistem","Trainer Sistem",.12]]},
+ keuangan:{l:"Keuangan / Akuntansi",re:/finance|akuntan|accounting|keuangan|pajak|tax|payroll|treasury|auditor/i,t:[
+  ["Urus pajak","Konsultan Pajak",.20],["Urus payroll & BPJS","Staf Payroll",.15],["Nagih piutang","Collector",.15],["Audit dadakan","Auditor",.18],
+  ["Bikin proyeksi buat investor","FP&A Analyst",.20],["Pegang kas kecil","Kasir",.10]]},
+ kreatif:{l:"Marketing / Kreatif / Konten",re:/marketing|desain|design|konten|content|social media|sosmed|kreatif|creative|copywriter|video|brand|editor|fotografer/i,t:[
+  ["Ngedit video","Video Editor",.20],["Jadi fotografer / talent dadakan","Fotografer + Talent",.18],["Nulis caption & copy","Copywriter",.15],
+  ["Bales DM & komen","Community Manager",.12],["Bikin laporan performa iklan","Ads Analyst",.18],["Urus vendor cetak & event","Project Manager",.15],
+  ["Bikin deck pitching","Strategist",.20]]},
+ sales:{l:"Sales / Bisnis",re:/sales|account|bisnis|business|\bbd\b|agen|agent|relationship/i,t:[
+  ["Bikin proposal & penawaran","Proposal Writer",.15],["Nagih pembayaran klien","Collector",.15],["Bikin konten promosi sendiri","Content Creator",.18],
+  ["Jadi CS klien 24 jam","Customer Service",.12],["Input CRM & laporan sales","Admin Sales",.12],["Antar sample ke klien","Kurir",.10]]},
+ cs:{l:"Customer Service",re:/\bcs\b|customer|call center|helpdesk|admin online|live chat/i,t:[
+  ["Jualan sambil bales chat","Sales",.20],["Bikin konten FAQ","Content Writer",.12],["Urus refund & retur","Staf Finance",.12],
+  ["Jadi tempat curhat customer","Konselor",.10],["Ngecek stok ke gudang","Staf Gudang",.10],["QC pesanan","Quality Control",.12]]},
+ ops:{l:"Operasional / Gudang / Logistik",re:/operasional|operation|gudang|logistik|logistic|warehouse|driver|produksi|production|supervisor|teknisi/i,t:[
+  ["Input data stok","Admin Inventory",.12],["Nyetir antar barang","Driver",.15],["Angkat-angkat barang","Porter",.10],
+  ["Urus vendor & ekspedisi","Procurement",.15],["Bikin laporan harian","Data Analyst",.15],["Benerin alat / mesin","Teknisi",.15]]},
+ admin:{l:"Admin / Kantor umum",re:/admin|staf|staff|sekretaris|secretary|office|asisten|assistant|general affair|resepsionis|receptionist|\bhr\b|personalia/i,t:[
+  ["Urus reimburse & keuangan","Finance",.15],["Urus absensi & cuti","Staf HR",.15],["Beli ATK & urus vendor","Purchasing",.12],
+  ["Atur jadwal & notulen bos","Sekretaris Pribadi",.15],["Benerin printer & wifi","IT Support",.12],["Bikin laporan / Excel buat atasan","Data Analyst",.18],
+  ["Pegang medsos kantor","Social Media Admin",.20]]},
+ lain:{l:"Lainnya",re:/$^/,t:[
+  ["Pegang medsos kantor","Social Media Admin",.20],["Bikin laporan buat atasan","Data Analyst",.18],["Benerin printer & wifi","IT Support",.12],
+  ["Handle klien / komplain","Customer Service",.15],["Atur jadwal & notulen bos","Sekretaris",.15],["Ngurus reimburse","Finance",.12]]},
+};
+const UNIV = [["Gantiin kerjaan yang resign","Karyawan Pengganti",.35],["Ngajarin anak baru","Trainer",.15],["Bales chat kerja di luar jam","CS 24 Jam",.10],
+ ["Ngurus acara kantor","Event Organizer",.12],["Jadi penengah drama tim","HR Gak Resmi",.10]];
+const ALLT = {};
+for(const [b,v] of Object.entries(BIDANG)) v.t.forEach(([l,t,w],i)=>ALLT[b+i]={k:b+i,l,t,w});
+UNIV.forEach(([l,t,w],i)=>ALLT["u"+i]={k:"u"+i,l,t,w});
+const detectBidang = j => Object.keys(BIDANG).find(b=>BIDANG[b].re.test(j)) || "lain";
+const ABSURD = ["Tunjangan Hari Senin","Tunjangan Sabar Reply All","Tunjangan \"Bisa Minta Tolong Bentar?\"","Tunjangan Revisi ke-7",
+ "Tunjangan Pura-pura Semangat Rapat","Tunjangan Ngerti Maksud \"Pokoknya\"","Tunjangan Tetap Senyum","Tunjangan Dengerin Curhat Atasan"];
+// harga perkiraan (Rp), kasar per Nov 2026
+const DEST = [
+ {e:"🌍",n:"Keliling Eropa 12 hari",p:50e6},{e:"🗾",n:"Liburan ke Jepang 7 hari",p:25e6},{e:"🦘",n:"Liburan ke Australia 7 hari",p:25e6},
+ {e:"🐠",n:"Diving di Raja Ampat 5 hari",p:20e6},{e:"🇰🇷",n:"Liburan ke Korea 6 hari",p:18e6},{e:"🦎",n:"Sailing Labuan Bajo 4 hari",p:8e6},
+ {e:"🇸🇬",n:"Liburan ke Singapura 4 hari",p:8e6},{e:"🍜",n:"Liburan ke Vietnam 5 hari",p:7e6},{e:"🛺",n:"Liburan ke Bangkok 5 hari",p:7e6},
+ {e:"🏝️",n:"Liburan ke Bali 4 hari",p:6e6},{e:"🏖️",n:"Liburan ke Lombok 4 hari",p:5e6},{e:"🏯",n:"Liburan ke Yogyakarta 3 hari",p:3e6},
+ {e:"🌄",n:"Staycation di Bandung 2 hari",p:1.5e6}];
+const BARANG = [
+ {e:"🚗",n:"DP mobil keluarga",p:60e6},{e:"🛵",n:"Motor matic baru",p:25e6},{e:"💻",n:"Laptop kerja kenceng",p:18e6},
+ {e:"📷",n:"Kamera mirrorless",p:15e6},{e:"🎮",n:"Konsol game + 5 game",p:10e6},{e:"🚲",n:"Sepeda lipat bagus",p:8e6},
+ {e:"📱",n:"HP baru yang kameranya bagus",p:4e6},{e:"❄️",n:"AC buat kamar",p:4e6},{e:"🎧",n:"Headphone noise cancelling",p:2e6}];
+const GOLD = 2520000; // ±Rp2,5 jt/gram emas batangan, pertengahan Nov 2026
+const CATS = [["liburan","✈️ Liburan"],["emas","🪙 Emas"],["barang","🛍️ Barang"],["jajan","☕ Jajan"]];
+const num = n => Math.floor(n).toLocaleString("id-ID");
+const SMALL=[["☕","kopi susu",25000],["🍜","mangkok mie ayam",15000],["🌶️","porsi seblak",15000],["🧋","es teh jumbo",5000],["🥞","martabak manis",50000],["🍢","tusuk sate taichan",4000]];
+function small(sisa,hs){const c=SMALL.filter(x=>sisa>=x[2]);if(!c.length)return "🍤 1 gorengan, bonus dari kantor";const x=c[(hs>>>5)%c.length];return `${x[0]} ${num(sisa/x[2])} ${x[1]}`;}
+const times=(x,n)=>`${x>1?x+"× ":""}${n}`;
+function bigSmall(list,uang,hs){
+  const ok=list.filter(x=>x.p<=uang);if(!ok.length)return null;
+  const c=ok.slice(0,3),b=c[hs%c.length],x=Math.min(Math.floor(uang/b.p),9);let rem=uang-x*b.p,mid=null,y=0;
+  if(rem>=3e6){mid=list.find(z=>z.p<=rem&&z!==b)||null;if(mid){y=Math.min(Math.floor(rem/mid.p),9);rem-=y*mid.p;}}
+  return{head:`${b.e} ${times(x,b.n)}`,sub:"+ "+(mid?`${mid.e} ${times(y,mid.n)} + `:"")+small(rem,hs),plain:times(x,b.n).toLowerCase()};
+}
+function convert(cat, uang, hs){
+  if(cat==="liburan"){return bigSmall(DEST,uang,hs)||convert("jajan",uang,hs);}
+  if(cat==="barang"){return bigSmall(BARANG,uang,hs)||convert("jajan",uang,hs);}
+  if(cat==="emas"){const g=uang/GOLD;const gr=g>=1?Math.floor(g):Math.floor(g*10)/10;const gs=gr.toLocaleString("id-ID");
+    if(gr<=0)return convert("jajan",uang,hs);
+    return{head:`🪙 ${gs} gram emas batangan`,sub:"+ "+small(uang-gr*GOLD,hs),plain:`${gs} gram emas`};}
+  if(cat==="barang"){const b=top(BARANG);if(!b)return convert("jajan",uang,hs);
+    return{head:`${b.e} ${b.n}`,sub:small(uang-b.p,hs),plain:b.n.toLowerCase()};}
+  const J=[["☕","gelas kopi susu",25000],["🍜","mangkok mie ayam",15000],["🥞","loyang martabak manis",50000],["🎬","kali nonton bioskop",50000]];
+  const a=J[hs%4],n=Math.floor(uang/a[2]),hari=Math.floor(n/365);
+  return{head:`${a[0]} ${num(n)} ${a[1]}`,sub:hari>=1?`= tiap hari selama ${num(hari)} tahun`:`= ${num(n/30)}× sebulan, tiap bulan`,plain:`${num(n)} ${a[1]}`};
+}
+const LOAD = ["Membaca jobdesc yang gak sesuai kenyataan","Menghitung lembur pakai rumus 1/173","Menjumlah peran yang kamu rangkap","Menyusun slip gaji versi jujur"];
+
+// ---------- utils ----------
+function hash(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return ((h2^h1)>>>0);}
+const norm = s => (s||"").normalize("NFKC").trim().replace(/\s+/g," ");
+const cap = s => norm(s).split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+const rp = n => "Rp" + Math.round(n).toLocaleString("id-ID");
+const rpShort = n => n>=1e9 ? "Rp"+(n/1e9).toLocaleString("id-ID",{maximumFractionDigits:2})+" M" : n>=1e6 ? "Rp"+(n/1e6).toLocaleString("id-ID",{maximumFractionDigits:1})+" jt" : rp(n);
+const pct = x => Math.round(x*100)+"%";
+const $ = id => document.getElementById(id);
+
+// ---------- compute ----------
+function compute(s){
+  const g = s.gaji, hourly = g/173, H = s.jam, perDay = H/5;
+  const dayFactor = perDay<=1 ? 1.5*perDay : 1.5 + 2*(perDay-1);
+  const lemburPenuh = dayFactor*5*(52/12)*hourly;
+  const lembur = lemburPenuh*(1-s.bayar);
+  const roles = s.tasks.map(k=>ALLT[k]).filter(Boolean).map(t=>({n:"Rangkap "+t.t, t:t.t, v:g*t.w}));
+  if (s.lain) roles.push({n:"Rangkap: "+s.lain, t:s.lain, v:g*.15});
+  roles.sort((a,b)=>b.v-a.v);
+  const hs = hash([s.nama,s.jabatan,s.gaji,s.tasks.join(","),s.lain,s.jam,s.bayar].join("|").toLowerCase());
+  const absurd = {n:ABSURD[hs%ABSURD.length], v:g*(.03 + (hs%5)/100)};
+  const rows = [];
+  if (lembur>0) rows.push({n:`Lembur gak dibayar (${H} jam/mgg)`, v:lembur});
+  roles.slice(0,3).forEach(r=>rows.push(r));
+  if (roles.length>3){const rest=roles.slice(3);rows.push({n:`+${rest.length} peran lain`, v:rest.reduce((a,b)=>a+b.v,0)});}
+  rows.push(absurd);
+  const extra = rows.reduce((a,b)=>a+b.v,0);
+  const total = g + extra;
+  const tahun = extra*12;
+  const people = 1 + roles.reduce((a,b)=>a+b.v,0)/g + (lemburPenuh>0? H/40 : 0);
+  return {...s, rows, roles, lembur, lemburPenuh, extra, total, tahun, naik: extra/g, kurang: extra/total,
+    hs, cat:["liburan","emas","barang","liburan","emas"][hs%5], people, no:"CG-"+(hs%900000+100000)};
+}
+
+// ---------- card ----------
+const cv=$("cv"), ctx=cv.getContext("2d");
+const F=(w,s,m)=>`${w} ${s}px ${m?'"Space Mono",monospace':'"Space Grotesk",system-ui,sans-serif'}`;
+function wrap(t,max){const ws=t.split(" "),L=[];let l="";for(const w of ws){const x=l?l+" "+w:w;if(ctx.measureText(x).width>max&&l){L.push(l);l=w;}else l=x;}if(l)L.push(l);return L;}
+function ell(t,max){if(ctx.measureText(t).width<=max)return t;while(t.length&&ctx.measureText(t+"…").width>max)t=t.slice(0,-1);return t.trim()+"…";}
+function fitFont(t,w,s,min,max,m){while(s>min){ctx.font=F(w,s,m);if(ctx.measureText(t).width<=max)break;s-=2;}ctx.font=F(w,s,m);return s;}
+function dash(y){ctx.save();ctx.strokeStyle="#B9B0A3";ctx.lineWidth=3;ctx.setLineDash([14,12]);ctx.beginPath();ctx.moveTo(130,y);ctx.lineTo(950,y);ctx.stroke();ctx.restore();}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+const label=(t,x,y)=>{ctx.fillStyle="#6B645B";ctx.font=F(400,26,1);ctx.fillText(t,x,y);};
+
+function drawCard(d, secret){
+  const W=1080,H=1920,X=130,R=950,MW=820;
+  ctx.textAlign="left";ctx.textBaseline="alphabetic";
+  ctx.fillStyle="#0E3B2E";ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalAlpha=.06;ctx.fillStyle="#F4EFE6";ctx.font=F(700,64);ctx.rotate(-0.35);
+  for(let y=-200;y<2400;y+=170)for(let x=-800;x<1600;x+=330)ctx.fillText("Rp",x+((y/170)%2)*160,y);ctx.restore();
+  const sx=70,sy=90,sw=940,sh=1650,zz=30;
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.35)";ctx.shadowBlur=40;ctx.shadowOffsetY=14;ctx.fillStyle="#F4EFE6";
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+sw,sy);ctx.lineTo(sx+sw,sy+sh);
+  for(let x=sx+sw;x>sx;x-=zz){ctx.lineTo(x-zz/2,sy+sh+zz*.7);ctx.lineTo(x-zz,sy+sh);}ctx.closePath();ctx.fill();ctx.restore();
+
+  let y=180;
+  ctx.fillStyle="#6B645B";ctx.font=F(700,28,1);ctx.fillText("SLIP GAJI",X,y);ctx.textAlign="right";ctx.fillText("No. "+d.no,R,y);ctx.textAlign="left";
+  y+=84;ctx.fillStyle="#14110F";ctx.font=F(700,86);ctx.fillText("SEHARUSNYA",X,y);
+  y+=40;dash(y);
+
+  // identitas
+  y+=56;label("NAMA · JABATAN DI KONTRAK",X,y);
+  y+=58;ctx.fillStyle="#14110F";fitFont(d.nama,700,52,34,MW);ctx.fillText(d.nama,X,y);
+  y+=50;ctx.font=F(500,38);ctx.fillStyle="#3b3631";ctx.fillText(ell(d.jabatan,MW),X,y);
+  if(d.jobdesc){y+=44;ctx.font=F(500,30);ctx.fillStyle="#6B645B";ctx.fillText(ell("Jobdesc: "+d.jobdesc,MW),X,y);}
+
+  // kenyataan
+  y+=54;label("KENYATAANNYA KAMU JUGA:",X,y);
+  const titles=d.roles.map(r=>r.t);
+  let real = titles.length ? titles.slice(0,3).join(" + ") + (titles.length>3?` + ${titles.length-3} lagi`:"") : "Lembur Specialist";
+  ctx.fillStyle="#14110F";ctx.font=F(700,42);
+  for(const l of wrap(real,MW).slice(0,2)){y+=52;ctx.fillText(l,X,y);}
+  y+=36;dash(y);
+
+  // rows
+  y+=10;
+  const all=[{n:"Gaji sekarang",v:d.gaji,base:1},...d.rows];
+  for(const r of all){
+    const val = secret ? (r.base?"Rp ███.███":"+"+pct(r.v/d.gaji)) : (r.base?"":"+")+rp(r.v);
+    ctx.font=F(700,32,1);const vw=ctx.measureText(val).width;
+    ctx.textAlign="right";ctx.fillStyle=r.base?"#14110F":"#0E7A4B";ctx.fillText(val,R,y+44);ctx.textAlign="left";
+    ctx.font=F(500,32);ctx.fillStyle="#3b3631";
+    const L=wrap(r.n,MW-vw-30).slice(0,2);L.forEach((l,i)=>ctx.fillText(l,X,y+44+i*40));
+    y+=44+(L.length-1)*40+12;
+  }
+  y+=12;dash(y);
+
+  // total
+  y+=54;
+  if(secret){
+    label("GAJI KAMU HARUSNYA NAIK",X,y);
+    y+=104;ctx.fillStyle="#0E7A4B";fitFont("+"+pct(d.naik),700,112,60,MW);ctx.fillText("+"+pct(d.naik),X,y);
+    y+=50;ctx.fillStyle="#3b3631";ctx.font=F(500,34);
+    ctx.fillText(`Kamu kerja kayak ${d.people.toLocaleString("id-ID",{maximumFractionDigits:1})} orang`,X,y);
+  } else {
+    label("TOTAL SEHARUSNYA / BULAN",X,y);
+    y+=96;ctx.fillStyle="#0E7A4B";fitFont(rp(d.total),700,100,56,MW);ctx.fillText(rp(d.total),X,y);
+    y+=50;ctx.fillStyle="#3b3631";ctx.font=F(500,34);
+    ctx.fillText(`Naik ${pct(d.naik)} · kerja kayak ${d.people.toLocaleString("id-ID",{maximumFractionDigits:1})} orang`,X,y);
+  }
+
+  // beli box
+  y+=40;const bY=y;
+  const cv2 = convert(d.cat,d.tahun,d.hs);const line1=cv2.head, line2=cv2.sub;
+  ctx.font=F(700,38);const L1=wrap(line1,800).slice(0,2);
+  const bH=64+L1.length*48+(line2?46:0)+16;
+  ctx.fillStyle="#E8E0D2";rr(X-20,bY,860,bH,18);ctx.fill();
+  ctx.fillStyle="#6B645B";ctx.font=F(700,24,1);ctx.fillText("SELISIH SETAHUN = BISA BUAT",X+8,bY+42);
+  ctx.fillStyle="#14110F";ctx.font=F(700,38);L1.forEach((l,i)=>ctx.fillText(l,X+8,bY+92+i*48));
+  if(line2){ctx.font=F(500,32);ctx.fillStyle="#3b3631";ctx.fillText(ell(line2,800),X+8,bY+92+L1.length*48);}
+  y=bY+bH;
+
+  // stamp
+  const stY=Math.min(Math.max(y+14,1470),1565);
+  ctx.save();ctx.translate(560,stY+66);ctx.rotate(-0.08);ctx.globalAlpha=.9;
+  ctx.strokeStyle="#D7263D";ctx.fillStyle="#D7263D";ctx.lineWidth=8;rr(-320,-66,640,132,16);ctx.stroke();ctx.lineWidth=3;rr(-308,-54,616,108,12);ctx.stroke();
+  ctx.textAlign="center";
+  if(secret){ctx.font=F(700,30,1);ctx.fillText("STATUS: DIBAYAR KURANG",0,-14);ctx.font=F(700,54);ctx.fillText(pct(d.kurang)+" dari hakmu",0,42);}
+  else{ctx.font=F(700,30,1);ctx.fillText("DITAHAN KANTOR / TAHUN",0,-14);ctx.font=F(700,54);ctx.fillText(rpShort(d.tahun),0,42);}
+  ctx.restore();
+
+  ctx.textAlign="center";ctx.fillStyle="#F4EFE6";ctx.font=F(700,42);ctx.fillText("Harusnya gaji kamu berapa? 👀",540,1832);
+  ctx.globalAlpha=.7;ctx.font=F(400,24,1);ctx.fillText(SHARE_URL.replace(/^https?:\/\//,"")+" · #cekgajimu #underpaid",540,1878);
+  ctx.globalAlpha=1;ctx.textAlign="left";
+}
+
+// ---------- form ----------
+$("bidang").innerHTML=Object.entries(BIDANG).map(([k,v])=>`<option value="${k}">${v.l}</option>`).join("");
+let bidangManual=false,chipsFor=null;
+$("bidang").onchange=()=>{bidangManual=true;};
+$("jabatan").addEventListener("input",()=>{if(!bidangManual)$("bidang").value=detectBidang($("jabatan").value);});
+$("bidang").value="lain";
+function buildChips(){const b=$("bidang").value;if(chipsFor===b)return;chipsFor=b;
+  const keys=[...BIDANG[b].t.map((_,i)=>b+i),...UNIV.map((_,i)=>"u"+i)];
+  $("chips").innerHTML="";keys.forEach(k=>{const t=ALLT[k];const c=document.createElement("span");c.className="chip"+(k[0]==="u"?" univ":"");c.textContent=t.l;c.dataset.k=k;c.onclick=()=>c.classList.toggle("on");$("chips").appendChild(c);});}
+$("gaji").addEventListener("input",e=>{const d=e.target.value.replace(/\D/g,"").replace(/^0+/,"").slice(0,10);e.target.value=d?Number(d).toLocaleString("id-ID"):"";});
+const jam=$("jam");jam.oninput=()=>{$("jamv").textContent=jam.value;$("jamwarn").classList.toggle("hidden",+jam.value<=18);};
+let bayar=0;$("bayar").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("bayar").querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");bayar=+b.dataset.v;});
+
+function readForm(){return{nama:cap($("nama").value),jabatan:cap($("jabatan").value),bidang:$("bidang").value,gaji:+$("gaji").value.replace(/\D/g,""),
+  jobdesc:norm($("jobdesc").value),tasks:[...document.querySelectorAll(".chip.on")].map(c=>c.dataset.k),lain:cap($("lain").value),jam:+jam.value,bayar};}
+function validate(step){
+  const s=readForm();let m="";
+  if(step>=1){if(!s.nama)m="Namanya diisi dulu ya.";else if(!s.jabatan)m="Jabatan di kontrak apa?";
+    else if(!s.gaji)m="Gajinya berapa? (tenang, gak dikirim ke mana-mana)";else if(s.gaji<500000)m="Minimal Rp500.000 ya.";else if(s.gaji>500000000)m="Gaji segitu sih gak perlu cek lagi 😅";}
+  if(!m&&step>=2&&!s.tasks.length&&!s.lain)m="Pilih minimal satu. Pasti ada lah 😏";
+  $("e"+Math.min(step,3)).textContent=m;return !m;
+}
+function show(n){if(n==2)buildChips();document.querySelectorAll(".step").forEach(s=>s.classList.toggle("hidden",s.dataset.step!=n));window.scrollTo({top:0});}
+document.querySelectorAll("[data-next]").forEach(b=>b.onclick=()=>{const to=+b.dataset.next,cur=+b.closest(".step").dataset.step;if(to<cur||validate(cur))show(to);});
+
+// ---------- result ----------
+let last=null,secret=true,lastBlob=null;
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),3200);}
+const fontsReady=Promise.race([Promise.all(['700 92px "Space Grotesk"','500 32px "Space Grotesk"','700 32px "Space Mono"','400 26px "Space Mono"'].map(f=>document.fonts?document.fonts.load(f):0)),new Promise(r=>setTimeout(r,2500))]).catch(()=>{});
+function texts(d){
+  const t=SHARE_URL+"\n#cekgajimu #underpaid";
+  const peran=d.roles.slice(0,3).map(r=>r.t).join(", ");
+  return{caption:t,
+   hrd:`Halo HRD 🙏\nSaya ${d.jabatan}, tapi ternyata juga ngerjain peran ${peran}${d.lembur>0?` + lembur ${d.jam} jam/minggu yang belum dibayar`:""}.\nMenurut hitungan (pakai rumus lembur PP 35/2021), gaji saya harusnya naik ${pct(d.naik)}.\nKapan kita bisa ngobrol santai soal ini? 😇\n\n${t}`};
+}
+function renderBeli(){const d=last,c=convert(d.cat,d.tahun,d.hs);
+  $("beli").innerHTML=`<h3>Yang ditahan kantor</h3><span class="big">${rp(d.extra)} / bulan</span><span class="big" style="font-size:17px">${rp(d.tahun)} / tahun</span>
+   <div style="margin-top:8px">Setahun cukup buat: <b>${c.head}</b>${c.sub?" "+c.sub:""}.</div><div class="sub">Harga = perkiraan kasar, emas ±Rp2,5 jt/gram (Nov 2026).</div>`;
+  $("cat").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===d.cat));}
+function render(){
+  drawCard(last,secret);$("card").src=cv.toDataURL("image/png");lastBlob=null;cv.toBlob(b=>lastBlob=b,"image/png");
+  const t=texts(last);$("hrd").href="https://wa.me/?text="+encodeURIComponent(t.hrd);
+}
+$("f").addEventListener("submit",async e=>{
+  e.preventDefault();if(!validate(1)){show(1);return;}if(!validate(2)){show(2);return;}
+  const d=compute(readForm());last=d;
+  document.querySelectorAll(".step").forEach(s=>s.classList.add("hidden"));$("loading").classList.remove("hidden");
+  let i=0;$("loadtxt").textContent=LOAD[0];const iv=setInterval(()=>{$("loadtxt").textContent=LOAD[++i%LOAD.length]},500);
+  await Promise.all([fontsReady,new Promise(r=>setTimeout(r,1800))]);clearInterval(iv);
+  $("cat").innerHTML=CATS.map(([v,l])=>`<button type="button" data-v="${v}">${l}</button>`).join("");
+  $("cat").querySelectorAll("button").forEach(b=>b.onclick=()=>{last.cat=b.dataset.v;render();renderBeli();});
+  render();
+  const rowsHtml=[["Gaji sekarang",d.gaji]].concat(d.rows.map(r=>[r.n,r.v])).map(([n,v],i)=>`<tr><td>${n}</td><td>${i?"+":""}${rp(v)}</td></tr>`).join("");
+  $("detail").innerHTML=`<h3>Rincian (cuma kamu yang lihat)</h3><table>${rowsHtml}<tr class="tot"><td>Seharusnya / bulan</td><td>${rp(d.total)}</td></tr></table>
+   <div class="sub" style="margin-top:8px">${d.lemburPenuh>0?`Lembur: ${d.jam} jam/minggu ≈ ${(d.jam/5).toLocaleString("id-ID",{maximumFractionDigits:1})} jam/hari × rumus PP 35/2021 = ${rp(d.lemburPenuh)}/bulan${d.bayar===1?" (sudah dibayar, gak dihitung)":d.bayar===.5?" (dihitung separuh karena kadang dibayar)":""}. `:""}Nilai rangkap peran = perkiraan kocak 10–35% gaji per peran.</div>`;
+  renderBeli();
+  $("loading").classList.add("hidden");$("result").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});
+});
+$("mode").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("mode").querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");secret=b.dataset.v==="secret";render();});
+$("again").onclick=()=>{$("result").classList.add("hidden");show(1);};
+
+
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const fname=()=>"cek-gaji-"+last.nama.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".png";
+const cardFile=()=>new File([lastBlob],fname(),{type:"image/png"});
+function hintSave(){const img=$("card");img.scrollIntoView({behavior:"smooth",block:"center"});
+  img.classList.remove("pulse");void img.offsetWidth;img.classList.add("pulse");
+  toast("👆 Tekan & tahan gambar ±2 detik → Simpan ke Foto / Download gambar");}
+$("keep").onclick=async()=>{
+  if(!lastBlob){toast("Bentar, kartunya lagi dibikin…");return;}
+  if(isIOS&&navigator.canShare&&navigator.canShare({files:[cardFile()]})){
+    try{await navigator.share({files:[cardFile()]});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+  if(!isIOS){try{const u=URL.createObjectURL(lastBlob);const a=document.createElement("a");a.href=u;a.download=fname();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Kartu tersimpan ✅ Cek galeri / folder Download");return;}catch(e){}}
+  hintSave();
+};
+const HINT={
+ ig:"📸 <b>Instagram Story:</b> buka Story → pilih kartu dari galeri → tambah <b>stiker Link</b> isi <b>cekgaji.github.io</b> → tempel caption (sudah tersalin).",
+ tt:"🎵 <b>TikTok:</b> tap + → Upload → pilih kartu dari galeri (Photo mode) → tempel caption di deskripsi (sudah tersalin). Link taruh di bio.",
+ th:"🧵 <b>Threads:</b> teks + link sudah terisi. Tambahkan gambar kartu dari galeri biar makin kena.",
+ x:"✖️ <b>X:</b> teks + link sudah terisi. Tambahkan gambar kartu dari galeri.",
+ fb:"👍 <b>Facebook:</b> link sudah terisi. Tempel caption (sudah tersalin) & tambah gambar kartu.",
+ wa:"💬 <b>WhatsApp:</b> pilih chat/grup. Buat <b>Status WA</b>: upload kartu dari galeri, tempel caption."};
+function openSheet(){
+  $("sheetimg").src=$("card").src;
+  const c=texts(last).caption, e=encodeURIComponent;
+  const q=s=>document.querySelector(`.plat a[data-p=${s}]`);
+  q("th").href="https://www.threads.net/intent/post?text="+e(c);
+  q("x").href="https://twitter.com/intent/tweet?text="+e(c);
+  q("fb").href="https://www.facebook.com/sharer/sharer.php?u="+e(SHARE_URL);
+  q("wa").href="https://wa.me/?text="+e(c);
+  $("dl").classList.remove("hidden");
+  $("sheethint").style.display="none";
+  $("sheet").classList.remove("hidden");
+}
+document.querySelectorAll(".plat a").forEach(a=>a.addEventListener("click",()=>{
+  try{navigator.clipboard.writeText(texts(last).caption).then(()=>toast("Caption + link tersalin ✅")).catch(()=>{});}catch(e){}
+  $("sheethint").innerHTML=HINT[a.dataset.p];$("sheethint").style.display="block";
+}));
+$("close").onclick=()=>$("sheet").classList.add("hidden");
+$("sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("sheet").classList.add("hidden");});
+$("save").onclick=async()=>{
+  if(!last)return;
+  if(lastBlob&&navigator.canShare){try{const f=cardFile();
+    if(navigator.canShare({files:[f]})){
+      try{await navigator.clipboard.writeText(texts(last).caption);}catch(e){}
+      await navigator.share({files:[f],text:texts(last).caption});return;}}catch(e){if(e&&e.name==="AbortError")return;}}
+  openSheet();
+};
+$("dl").onclick=()=>$("keep").click();
+
+})();
+</script>
+</body>
+</html>
