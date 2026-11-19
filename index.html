@@ -175,7 +175,7 @@
   <div class="sheethead"><b>Share ke sosmedmu 🚀</b><button type="button" class="x" id="close">✕</button></div>
   <div class="st"><span>1</span>Simpan kartu ke galeri</div>
   <div class="saverow"><img id="sheetimg" alt="Kartu"><div class="sub" style="margin:0"><b>Tekan lama gambar ini</b> → pilih <b>"Simpan ke Foto"</b> (iPhone) atau <b>"Download gambar"</b> (Android).<button type="button" id="dl" class="hidden">⬇️ Download kartu</button></div></div>
-  <div class="st"><span>2</span>Pilih mau share ke mana <small>(caption + link otomatis tersalin)</small></div>
+  <div class="st"><span>2</span>Pilih mau share ke mana <small>(kartu otomatis terunduh + link tersalin)</small></div>
   <div class="plat">
     <a data-p="ig" target="_blank" rel="noopener" href="https://www.instagram.com/">📸<br>IG Story</a>
     <a data-p="tt" target="_blank" rel="noopener" href="https://www.tiktok.com/">🎵<br>TikTok</a>
@@ -478,10 +478,10 @@ $("keep").onclick=async()=>{
   hintSave();
 };
 const HINT={
- ig:"📸 <b>Instagram Story:</b> buka Story → pilih kartu dari galeri → tambah <b>stiker Link</b> isi <b>cekgaji.github.io</b> → tempel caption (sudah tersalin).",
- tt:"🎵 <b>TikTok:</b> tap + → Upload → pilih kartu dari galeri (Photo mode) → tempel caption di deskripsi (sudah tersalin). Link taruh di bio.",
- th:"🧵 <b>Threads:</b> teks + link sudah terisi. Tambahkan gambar kartu dari galeri biar makin kena.",
- x:"✖️ <b>X:</b> teks + link sudah terisi. Tambahkan gambar kartu dari galeri.",
+ ig:"📸 <b>Instagram Story:</b> buka Story → pilih kartu yang barusan terunduh → tambah <b>stiker Link</b> isi <b>cekgaji.github.io</b> → tempel caption (sudah tersalin).",
+ tt:"🎵 <b>TikTok:</b> tap + → Upload → pilih kartu yang barusan terunduh (Photo mode) → tempel caption di deskripsi (sudah tersalin). Link taruh di bio.",
+ th:"🧵 <b>Threads:</b> teks + link sudah terisi. Lampirkan kartu yang barusan terunduh.",
+ x:"✖️ <b>X:</b> teks + link sudah terisi. Lampirkan kartu yang barusan terunduh.",
  fb:"👍 <b>Facebook:</b> link sudah terisi. Tempel caption (sudah tersalin) & tambah gambar kartu.",
  wa:"💬 <b>WhatsApp:</b> pilih chat/grup. Buat <b>Status WA</b>: upload kartu dari galeri, tempel caption."};
 function openSheet(){
@@ -497,7 +497,9 @@ function openSheet(){
   $("sheet").classList.remove("hidden");
 }
 document.querySelectorAll(".plat a").forEach(a=>a.addEventListener("click",()=>{
-  try{navigator.clipboard.writeText(texts(last).caption).then(()=>toast("Caption + link tersalin ✅")).catch(()=>{});}catch(e){}
+  try{navigator.clipboard.writeText(texts(last).caption).catch(()=>{});}catch(e){}
+  try{if(lastBlob){const u=URL.createObjectURL(lastBlob);const d=document.createElement("a");d.href=u;d.download=fname();document.body.appendChild(d);d.click();d.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);}}catch(e){}
+  toast("Kartu terunduh + link tersalin ✅ Tinggal lampirkan gambarnya");
   $("sheethint").innerHTML=HINT[a.dataset.p];$("sheethint").style.display="block";
 }));
 $("close").onclick=()=>$("sheet").classList.add("hidden");
